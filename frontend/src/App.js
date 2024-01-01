@@ -13,7 +13,8 @@ function App() {
   });
 
   const [sourceCryptos, setSourceCryptos] = useState([]);
-  const [convertedAmount, setConvertedAmount] = useState(8999);
+  const [convertedAmount, setConvertedAmount] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     getCrytpoCurrencies();
@@ -36,13 +37,45 @@ function App() {
     }
   };
 
+  function handleInputChange(e) {
+    setError(null);
+    setConvertedAmount(null);
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    const { sourceCrypto, targetCurrency, amount } = formData;
+    if (!sourceCrypto) {
+      setError("Please select source crypto");
+      return;
+    }
+
+    if (!amount) {
+      setError("Please enter amount");
+      return;
+    }
+
+    const params = {
+      amount,
+      sourceCrypto,
+      targetCurrency
+    }
+
+    const { data } = await axios.get(`http://localhost:8000/api/currency-conversion`, {
+      params
+    });
+    setConvertedAmount(data[sourceCrypto][targetCurrency]);
+  };
+
   return (
     <div className="App">
       <h1>Crypto Converter</h1>
-      <form onSubmit={() => { }}>
+      <form onSubmit={handleSubmit}>
         <div>
           <label>Source Crypto:</label>
-          <select name="sourceCrypto" value={''} onChange={() => { }}>
+          <select name="sourceCrypto" value={formData?.sourceCrypto} onChange={handleInputChange}>
             {sourceCryptos?.map(crypto => (
               <option key={crypto?.id} value={crypto?.id}>{crypto?.name}</option>
             ))}
@@ -51,7 +84,7 @@ function App() {
 
         <div>
           <label>Target Currency:</label>
-          <select name="targetCurrency" value={''} onChange={() => { }}>
+          <select name="targetCurrency" value={formData?.targetCurrency} onChange={handleInputChange}>
             {CURRECIES.map(currency => (
               <option key={currency} value={currency}>{currency.toUpperCase()}</option>
             ))}
@@ -60,16 +93,19 @@ function App() {
 
         <label>
           Amount:
-          <input type="number" name="amount" value={formData.amount} onChange={() => { }} />
+          <input className={error ? 'error' : ''} type="number" name="amount" value={formData.amount} onChange={handleInputChange} />
         </label>
 
         <button type="submit">Convert</button>
       </form>
+
       {convertedAmount !== null && (
         <div>
           <h2>Converted Amount: {convertedAmount}</h2>
         </div>
       )}
+      
+      {error && <p style={{ color: 'red' }}>{error}</p>}
     </div>
   );
 }
