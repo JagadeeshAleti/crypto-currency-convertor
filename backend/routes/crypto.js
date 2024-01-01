@@ -23,4 +23,35 @@ router.get('/crypto-currencies', async (req, res) => {
     }
 });
 
+// Api endpoint for currency conversion
+router.get('/currency-conversion', async (req, res) => {
+    try {
+        const { sourceCrypto, amount, targetCurrency } = req.query;
+        
+        // Fetch real-time exchange rates
+        const { data } = await axios.get('https://api.coingecko.com/api/v3/simple/price', {
+            params: {
+                ids: sourceCrypto,
+                vs_currencies: targetCurrency,
+            },
+        });
+
+        const splitSource = sourceCrypto.split(',');
+        const splitTarget = targetCurrency.split(',');
+
+        let result = {};
+        splitSource.forEach((source) => {
+            result[source] = {};
+            splitTarget.forEach((target) => {
+                result[source][target] = amount * data[source][target];
+            });
+        });
+
+        res.json(result);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
 module.exports = router;

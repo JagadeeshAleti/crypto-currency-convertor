@@ -86,3 +86,68 @@ describe('/api/crypto-currencies endpoint', () => {
         expect(response.body.error).toBe('Internal Server Error');
     });
 });
+
+describe('/api/currency-conversion endpoint', () => {
+    it('should return the converted amount for a single source crypto and target currency', async () => {
+        // Mock data for the response from Coingecko API
+        const mockData = {
+            bitcoin: { usd: 42521 },
+        };
+
+        // Mocking the axios get function to resolve with mockData
+        axios.get.mockResolvedValue({ data: mockData });
+
+        // Make a request to the endpoint using supertest
+        const response = await supertest(app)
+            .get('/api/currency-conversion?sourceCrypto=bitcoin&targetCurrency=usd&amount=2');
+
+        // Assert the response status and body
+        expect(response.status).toBe(200);
+        expect(response.body).toEqual({
+            bitcoin: {
+                usd: 85042, // Expected converted amount based on the mock data
+            },
+        });
+    });
+
+    it('should return the converted amount for multiple source cryptos and target currencies', async () => {
+        // Mock data for the response from Coingecko API
+        const mockData = {
+            bitcoin: { usd: 42521, inr: 3536102 },
+            '0chain': { usd: 0.29993, inr: 24.95 },
+        };
+
+        // Mocking the axios get function to resolve with mockData
+        axios.get.mockResolvedValue({ data: mockData });
+
+        // Make a request to the endpoint using supertest
+        const response = await supertest(app)
+            .get('/api/currency-conversion?sourceCrypto=bitcoin,0chain&targetCurrency=usd,inr&amount=2');
+
+        // Assert the response status and body
+        expect(response.status).toBe(200);
+        expect(response.body).toEqual({
+            bitcoin: {
+                usd: 85042, 
+                inr: 7072204,
+            },
+            '0chain': {
+                usd: 0.59986,
+                inr: 49.9,
+            },
+        });
+    });
+
+    it('should handle errors and return a 500 status code with an error message', async () => {
+        // Mocking an error scenario by rejecting the axios get function
+        axios.get.mockRejectedValue(new Error('Mocked error message'));
+
+        // Make a request to the endpoint using supertest
+        const response = await supertest(app)
+            .get('/api/currency-conversion?sourceCrypto=bitcoin&targetCurrency=usd&amount=2');
+
+        // Assert the response status and error message
+        expect(response.status).toBe(500);
+        expect(response.body.error).toBe('Internal Server Error');
+    });
+});
