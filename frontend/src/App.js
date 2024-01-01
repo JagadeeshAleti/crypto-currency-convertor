@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import axios from 'axios';
 import './App.css';
 
 const CURRECIES = ['btc', 'eth', 'ltc', 'bch', 'bnb', 'eos', 'xrp', 'xlm', 'link', 'dot', 'yfi', 'usd', 'aed', 'ars', 'aud', 'bdt', 'bhd', 'bmd', 'brl', 'cad', 'chf', 'clp', 'cny', 'czk', 'dkk', 'eur', 'gbp', 'gel', 'hkd', 'huf', 'idr', 'ils', 'inr', 'jpy', 'krw', 'kwd', 'lkr', 'mmk', 'mxn', 'myr', 'ngn', 'nok', 'nzd', 'php', 'pkr', 'pln', 'rub', 'sar', 'sek', 'sgd', 'thb', 'try', 'twd', 'uah', 'vef', 'vnd', 'zar', 'xdr', 'xag', 'xau', 'bits', 'sats'];
@@ -13,6 +14,28 @@ function App() {
 
   const [sourceCryptos, setSourceCryptos] = useState([]);
   const [convertedAmount, setConvertedAmount] = useState(8999);
+
+  useEffect(() => {
+    getCrytpoCurrencies();
+  }, []);
+
+  async function getCrytpoCurrencies() {
+    try {
+      const { data: { currencies } } = await axios.get('http://localhost:8000/api/crypto-currencies');
+      if (currencies.length > 0) {
+        setFormData(pre => {
+          return {
+            ...pre,
+            sourceCrypto: currencies[0]?.id
+          }
+        })
+      }
+      setSourceCryptos(currencies);
+    } catch (err) {
+      console.error("Error while getting the crypto currencies: ", err);
+    }
+  };
+
   return (
     <div className="App">
       <h1>Crypto Converter</h1>
