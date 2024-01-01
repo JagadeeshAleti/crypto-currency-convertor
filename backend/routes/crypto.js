@@ -19,7 +19,10 @@ router.get('/crypto-currencies', async (req, res) => {
         res.json({  currencies: data });
     } catch (error) {
         console.error(error.message);
-        res.status(500).json({ error: 'Internal Server Error' });
+        if(error?.response?.status === 429) {
+            return res.status(429).json({ error: "You have sent to many request, please wait for sometime"})
+        }
+        return res.status(500).json({ error: 'Internal Server Error' });
     }
 });
 

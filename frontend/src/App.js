@@ -15,6 +15,7 @@ function App() {
   const [sourceCryptos, setSourceCryptos] = useState([]);
   const [convertedAmount, setConvertedAmount] = useState(null);
   const [error, setError] = useState(null);
+  const [apiRateLimitExceeded, setApiRateLimitExceeded] = useState(false);
 
   useEffect(() => {
     getCrytpoCurrencies();
@@ -32,8 +33,11 @@ function App() {
         })
       }
       setSourceCryptos(currencies);
+      setApiRateLimitExceeded(false);
     } catch (err) {
-      console.error("Error while getting the crypto currencies: ", err);
+      if(err?.response?.status === 429) {
+        setApiRateLimitExceeded(true);
+      }
     }
   };
 
@@ -106,6 +110,10 @@ function App() {
       )}
       
       {error && <p style={{ color: 'red' }}>{error}</p>}
+
+      {apiRateLimitExceeded && 
+        <p className='apiRateLimitExceeded'>Oops! Please give us a moment to catch our breath, and try again shortly.</p>
+      }
     </div>
   );
 }
