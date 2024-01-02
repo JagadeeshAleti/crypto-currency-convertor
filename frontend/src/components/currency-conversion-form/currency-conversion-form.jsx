@@ -99,6 +99,6 @@ export const CurrencyConversionForm = ({
             <button type="submit">{CONVERT}</button>
         </form>
         {error ? <p>{error}</p> : null}
-        {(apiRateLimitExceeded && setSourceCryptos.length ) ? <p className='apiRateLimitExceeded'>{RATE_LIMIT_ERROR}</p> : null}
+        {(apiRateLimitExceeded && setSourceCryptos.length === 0) ? <p className='apiRateLimitExceeded'>{RATE_LIMIT_ERROR}</p> : null}
     </>
 }
