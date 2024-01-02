@@ -70,11 +70,9 @@ export const CurrencyConversionForm = ({
             <label>{AMOUNT}</label>
             <input className={error ? 'error' : ''} type="number" name="amount" value={amount} onChange={handleInputChange} />
         </div>
-        {
-            converting ?
-            <Loader /> :
-            <button disabled={disableButton} type="submit">{CONVERT}</button>
-        }
+
+        <button disabled={disableButton} type="submit">{CONVERT}</button>
+
         {error ? <p>{error}</p> : null}
     </form>
 }
