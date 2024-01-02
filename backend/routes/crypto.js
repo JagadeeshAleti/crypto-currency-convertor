@@ -52,8 +52,11 @@ router.get('/currency-conversion', async (req, res) => {
 
         res.json(result);
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Internal Server Error' });
+        console.error(error.message);
+        if(error?.response?.status === 429) {
+            return res.status(429).json({ error: "You have sent to many request, please wait for sometime"})
+        }
+        return res.status(500).json({ error: 'Internal Server Error' });
     }
 });
 

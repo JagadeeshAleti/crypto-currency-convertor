@@ -1,31 +1,24 @@
-import { useEffect, useState } from "react";
-import { AMOUNT, CONVERT, RATE_LIMIT_ERROR, SOURCE_CRYPTO, TARGET_CURRENCY } from "../../constants";
-import axios from "axios";
+import { useState } from "react";
+import { AMOUNT, CONVERT, SOURCE_CRYPTO, TARGET_CURRENCY } from "../../constants";
 import { CURRECIES } from "../../currency-list";
 import { Select } from "../common/select/select";
-import { Config } from "../../config";
 import './styles.css';
+import { Loader } from "../common/loader/loader";
 
 export const CurrencyConversionForm = ({
+    crytpoCurrencies,
     onSubmit,
-    changeInput
+    converting
 }) => {
     const [formData, setFormData] = useState({
-        sourceCrypto: '',
+        sourceCrypto: crytpoCurrencies[0]?.id,
         amount: '',
         targetCurrency: 'usd',
     });
     const [error, setError] = useState(null);
-    const [apiRateLimitExceeded, setApiRateLimitExceeded] = useState(false);
-    const [sourceCryptos, setSourceCryptos] = useState([]);
-
-    useEffect(() => {
-        getCrytpoCurrencies()
-    }, [])
 
     function handleInputChange(e) {
         setError(null);
-        changeInput();
         const { name, value } = e.target;
         setFormData({ ...formData, [name]: value });
     };
@@ -48,57 +41,40 @@ export const CurrencyConversionForm = ({
         })
     };
 
-    async function getCrytpoCurrencies() {
-        try {
-            const { data: { currencies } } = await axios.get(`${Config.baseUrl}/crypto-currencies`);
-            if (currencies.length > 0) {
-                setFormData(pre => {
-                    return {
-                        ...pre,
-                        sourceCrypto: currencies[0]?.id
-                    }
-                })
-            }
-            setSourceCryptos(currencies);
-            setApiRateLimitExceeded(false);
-        } catch (err) {
-            if (err?.response?.status === 429) {
-                setApiRateLimitExceeded(true);
-            }
-        }
-    };
-
     const targetCurrencyOptions = CURRECIES.map(currency => ({
         label: currency?.toUpperCase(),
         value: currency,
     }))
 
-    const sourceCryptosOptions = sourceCryptos.map(crypto => ({
+    const sourceCryptosOptions = crytpoCurrencies.map(crypto => ({
         label: crypto?.name,
         value: crypto?.id
     }))
+    const { amount, sourceCrypto, targetCurrency } = formData;
+    const disableButton = !amount || !sourceCrypto;
 
-    return <>
-        <form onSubmit={handleSubmit}>
-            <Select options={sourceCryptosOptions}
-                name="sourceCrypto"
-                onChange={handleInputChange}
-                label={SOURCE_CRYPTO}
-                value={formData?.sourceCrypto}
-            />
-            <Select options={targetCurrencyOptions}
-                name="targetCurrency"
-                onChange={handleInputChange}
-                label={TARGET_CURRENCY}
-                value={formData?.targetCurrency}
-            />
-            <div className="form-field">
-                <label>{AMOUNT}</label>
-                <input className={error ? 'error' : ''} type="number" name="amount" value={formData.amount} onChange={handleInputChange} />
-            </div>
-            <button type="submit">{CONVERT}</button>
-        </form>
+    return <form onSubmit={handleSubmit}>
+        <Select options={sourceCryptosOptions}
+            name="sourceCrypto"
+            onChange={handleInputChange}
+            label={SOURCE_CRYPTO}
+            value={sourceCrypto}
+        />
+        <Select options={targetCurrencyOptions}
+            name="targetCurrency"
+            onChange={handleInputChange}
+            label={TARGET_CURRENCY}
+            value={targetCurrency}
+        />
+        <div className="form-field">
+            <label>{AMOUNT}</label>
+            <input className={error ? 'error' : ''} type="number" name="amount" value={amount} onChange={handleInputChange} />
+        </div>
+        {
+            converting ?
+            <Loader /> :
+            <button disabled={disableButton} type="submit">{CONVERT}</button>
+        }
         {error ? <p>{error}</p> : null}
-        {(apiRateLimitExceeded && setSourceCryptos.length === 0) ? <p className='apiRateLimitExceeded'>{RATE_LIMIT_ERROR}</p> : null}
-    </>
+    </form>
 }
