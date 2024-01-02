@@ -1,0 +1,33 @@
+p {
+    color: rgb(201, 19, 19);
+}
+
+
+.App {
+    text-align: center;
+    padding: 20px;
+}
+
+.error {
+    border: 2px solid red;
+    border-radius: 5px;
+}
+
+.apiRateLimitExceeded {
+    font-weight: bold;
+    text-align: center;
+    width: 40%;
+    margin: auto;
+    margin-top: 20px;
+}
+
+/* Media queries for responsiveness */
+@media screen and (max-width: 600px) {
+    form {
+        max-width: 100%;
+    }
+    .apiRateLimitExceeded{
+        width: 100%;
+    }
+
+}
